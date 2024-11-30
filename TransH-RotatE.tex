@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\begin{document}
+
+\begin{algorithm}
+\caption{Learning TransH-RotatE}
+\begin{algorithmic}[1]
+\Require Training set $\Delta = \{ (h, r, t) \}$, entity set $E$, relation set $R$, relation-specific weight set $M$, margin $\gamma$, dimension of embeddings $k$, batch size $b$, adjustable parameter $\beta$
+\State Initialize $\mathbf{d_r} \leftarrow \text{uniform}\left(-\sqrt{\frac{6}{k}}, \sqrt{\frac{6}{k}}\right)$ for each $r \in R$ \Comment{initialize relation embedding vector}
+\State $\mathbf{d_r} \leftarrow \frac{\mathbf{d_r}}{\| \mathbf{d_r} \|}$ for each $r \in R$ \Comment{normalize relation vector}
+\State $\mathbf{e} \leftarrow \text{uniform}\left(-\sqrt{\frac{6}{k}}, \sqrt{\frac{6}{k}}\right)$ for each $e \in E$ \Comment{initialize entity embedding vector}
+\State $\omega_r \leftarrow \frac{\beta}{(hpt \cdot tph)}$ for each $\omega_r \in M$ \Comment{calculate relation-specific weight}
+\State $\mathbf{w1_r} \leftarrow \text{uniform}\left(-\sqrt{\frac{6}{k}}, \sqrt{\frac{6}{k}}\right)$ for each $r \in R$ \Comment{initialize the first normal vector}
+\State $\mathbf{w2_r} \leftarrow \text{uniform}\left(-\sqrt{\frac{6}{k}}, \sqrt{\frac{6}{k}}\right)$ for each $r \in R$ \Comment{initialize the second normal vector}
+
+\While{not converged}
+    \State $\mathbf{w1_r} \leftarrow \frac{\mathbf{w1_r}}{\| \mathbf{w1_r} \|}$ for each $r \in R$ \Comment{normalize the first normal vector}
+    \State $\mathbf{w2_r} \leftarrow \frac{\mathbf{w2_r}}{\| \mathbf{w2_r} \|}$ for each $r \in R$ \Comment{normalize the second normal vector}
+    \State $S_{batch} \leftarrow \text{sample}(\Delta, b)$ \Comment{sample a minibatch of size $b$}
+    \State $T_{batch} \leftarrow \emptyset$ \Comment{initialize the set of pairs of triples}
+    \For{$\langle h, r, t \rangle \in S_{batch}$}
+        \State $\langle h', r, t' \rangle \leftarrow \text{sample}(\Delta')$ \Comment{sample a negative triplet}
+        \State $T_{batch} \leftarrow T_{batch} \cup \{\langle h, r, t \rangle, \langle h', r, t' \rangle\}$ \Comment{merge positive and negative triplets}
+    \EndFor
+    \State Update embeddings w.r.t. $\sum_{\langle h, r, t \rangle, \langle h', r, t' \rangle \in T_{batch}} \nabla [ f_r(h, t) + \beta \gamma - f_r(h', t') ]_+$
+\EndWhile
+
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
